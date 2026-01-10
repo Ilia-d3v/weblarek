@@ -1,6 +1,7 @@
 import './scss/styles.scss';
 
 import { apiProducts } from './utils/data';
+import { API_URL } from './utils/constants';
 
 import { Api } from './components/base/Api';
 import { Products } from './components/models/Products';
@@ -21,6 +22,8 @@ if (firstId) {
   console.log('getById:', productsModel.getById(firstId));
   productsModel.setPreview(apiProducts.items[0]);
   console.log('Preview:', productsModel.getPreview());
+  productsModel.setPreview(null);
+  console.log('Preview reset:', productsModel.getPreview());
 }
 
 console.log('--- TEST: Basket ---');
@@ -34,11 +37,13 @@ if (p1) basketModel.add(p1);
 console.log('Корзина:', basketModel.getItems());
 console.log('Count:', basketModel.getCount());
 console.log('Total:', basketModel.getTotal());
+
 if (p0) {
   console.log('has p0?', basketModel.has(p0.id));
   basketModel.remove(p0);
   console.log('После remove(p0):', basketModel.getItems());
 }
+
 basketModel.clear();
 console.log('После clear:', basketModel.getItems());
 
@@ -52,16 +57,18 @@ buyerModel.setData({ email: 'test@test.ru', phone: '+79990000000' });
 console.log('Шаг2:', buyerModel.getData(), 'errors:', buyerModel.validateStep2());
 
 console.log('Полная validate:', buyerModel.validate());
+
 buyerModel.clear();
 console.log('После clear:', buyerModel.getData());
 
 console.log('--- TEST: API getProducts ---');
+console.log('API_URL USED:', API_URL);
 
-const baseUrl = import.meta.env.VITE_API_ORIGIN;
-const api = new Api(baseUrl);
+const api = new Api(API_URL);
 const larekApi = new LarekApi(api);
 
-larekApi.getProducts()
+larekApi
+  .getProducts()
   .then((items) => {
     productsModel.setItems(items);
     console.log('Каталог с сервера сохранён:', productsModel.getItems());
