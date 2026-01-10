@@ -98,3 +98,138 @@ Presenter - презентер содержит основную логику п
 `emit<T extends object>(event: string, data?: T): void` - инициализация события. При вызове события в метод передается название события и объект с данными, который будет использован как аргумент для вызова обработчика.  
 `trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void` - возвращает функцию, при вызове которой инициализируется требуемое в параметрах событие с передачей в него данных из второго параметра.
 
+## Данные
+
+В приложении используются следующие сущности данных.
+
+### Товар (IProduct)
+
+```ts
+interface IProduct {
+  id: string;
+  description: string;
+  image: string;
+  title: string;
+  category: string;
+  price: number | null;
+}
+```
+
+---
+
+### Покупатель (IBuyer)
+
+```ts
+interface IBuyer {
+  payment: TPayment | null;
+  email: string;
+  phone: string;
+  address: string;
+}
+```
+
+---
+
+### Тип способа оплаты (TPayment)
+
+```ts
+type TPayment = 'card' | 'cash';
+```
+
+---
+
+### Данные заказа (IOrderRequest)
+
+```ts
+interface IOrderRequest {
+  payment: TPayment;
+  email: string;
+  phone: string;
+  address: string;
+  items: string[];
+  total: number;
+}
+```
+
+---
+
+## Модели данных
+
+Модели данных отвечают исключительно за хранение, изменение и валидацию данных и не зависят от DOM или представлений.
+
+### Модель каталога товаров (Products)
+
+**Поля:**
+
+* `items: IProduct[]` — массив товаров каталога
+* `preview: IProduct | null` — товар для детального просмотра
+
+**Методы:**
+
+* `setItems(items: IProduct[]): void`
+* `getItems(): IProduct[]`
+* `getById(id: string): IProduct | undefined`
+* `setPreview(product: IProduct | null): void`
+* `getPreview(): IProduct | null`
+
+---
+
+### Модель корзины (Basket)
+
+**Поля:**
+
+* `items: IProduct[]` — товары в корзине
+
+**Методы:**
+
+* `getItems(): IProduct[]`
+* `add(product: IProduct): void`
+* `remove(product: IProduct): void`
+* `clear(): void`
+* `getTotal(): number`
+* `getCount(): number`
+* `has(id: string): boolean`
+
+---
+
+### Модель покупателя (Buyer)
+
+**Поля:**
+
+* `payment: TPayment | null`
+* `email: string`
+* `phone: string`
+* `address: string`
+
+**Методы:**
+
+* `setData(data: Partial<IBuyer>): void`
+* `getData(): IBuyer`
+* `clear(): void`
+* `validate(): Record<string, string>`
+* `validateStep1(): Record<string, string>`
+* `validateStep2(): Record<string, string>`
+
+---
+
+## Слой коммуникации
+
+Для взаимодействия с сервером реализован отдельный коммуникационный слой.
+
+### Класс LarekApi
+
+Класс использует композицию и базовый класс `Api` для выполнения HTTP-запросов.
+
+**Конструктор:**
+
+* `constructor(api: IApi)`
+
+**Методы:**
+
+* `getProducts(): Promise<IProduct[]>` — GET `/product`
+* `createOrder(order: IOrderRequest): Promise<unknown>` — POST `/order`
+
+Базовый URL сервера формируется из переменной окружения `VITE_API_ORIGIN` и константы `/api`.
+Конкретные эндпоинты добавляются в методах коммуникационного слоя.
+
+---
