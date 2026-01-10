@@ -32,15 +32,12 @@ export class Buyer {
   }
 
   validate(): TBuyerErrors {
-    const errors: TBuyerErrors = {};
-
-    if (!this.payment) errors.payment = 'Не выбран вид оплаты';
-    if (!this.address.trim()) errors.address = 'Введите адрес доставки';
-    if (!this.email.trim()) errors.email = 'Укажите email';
-    if (!this.phone.trim()) errors.phone = 'Укажите телефон';
-
-    return errors;
+    return {
+      ...this.validateStep1(),
+      ...this.validateStep2(),
+    };
   }
+  
 
   validateStep1(): TBuyerErrors {
     const errors: TBuyerErrors = {};

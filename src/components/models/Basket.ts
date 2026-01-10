@@ -9,8 +9,8 @@ export class Basket {
 
   add(product: IProduct): void {
     if (this.has(product.id)) return;
-    this.items = [...this.items, product];
-  }
+    this.items.push(product);
+  }  
 
   remove(product: IProduct): void {
     this.items = this.items.filter((p) => p.id !== product.id);

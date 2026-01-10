@@ -1,4 +1,4 @@
-import type { IApi, IOrderRequest, IProduct, IProductsResponse } from '../../types';
+import type { IApi, IOrderRequest, IProduct, IProductsResponse, IOrderResponse} from '../../types';
 
 export class LarekApi {
   constructor(private api: IApi) {}
@@ -8,7 +8,7 @@ export class LarekApi {
     return data.items;
   }
 
-  async createOrder(order: IOrderRequest): Promise<unknown> {
-    return this.api.post('/order/', order);
+  async createOrder(order: IOrderRequest): Promise<IOrderResponse> {
+    return this.api.post<IOrderResponse>('/order/', order);
   }
 }

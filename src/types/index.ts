@@ -32,7 +32,13 @@ export interface IOrderRequest {
   total: number;  
 }
 
+export interface IOrderResponse {
+  id: string;
+  total: number;
+}
+
 export interface IProductsResponse {
   total: number;
   items: IProduct[];
 }
+
