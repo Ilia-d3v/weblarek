@@ -1,5 +1,5 @@
-import { Component } from '../base/Component';
-import type { IEvents } from '../base/Events';
+import { Component } from "../base/Component";
+import type { IEvents } from "../base/Events";
 
 type BasketViewData = {
   items: HTMLElement[];
@@ -14,12 +14,12 @@ export class BasketView extends Component<BasketViewData> {
   constructor(container: HTMLElement, private events: IEvents) {
     super(container);
 
-    this.listEl = container.querySelector('.basket__list')!;
-    this.totalEl = container.querySelector('.basket__price')!;
-    this.orderBtn = container.querySelector('.basket__button')!;
+    this.listEl = container.querySelector(".basket__list")!;
+    this.totalEl = container.querySelector(".basket__price")!;
+    this.orderBtn = container.querySelector(".basket__button")!;
 
-    this.orderBtn.addEventListener('click', () => {
-      this.events.emit('order:open');
+    this.orderBtn.addEventListener("click", () => {
+      this.events.emit("order:open");
     });
   }
 

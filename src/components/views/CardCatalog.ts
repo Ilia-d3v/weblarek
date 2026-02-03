@@ -1,7 +1,7 @@
-import { Component } from '../base/Component';
-import { IProduct } from '../../types';
-import { EventEmitter } from '../base/Events';
-import { categoryMap, CDN_URL  } from '../../utils/constants';
+import { Component } from "../base/Component";
+import { IProduct } from "../../types";
+import { EventEmitter } from "../base/Events";
+import { categoryMap, CDN_URL } from "../../utils/constants";
 
 export class CardCatalog extends Component<IProduct> {
   private titleEl: HTMLElement;
@@ -14,13 +14,13 @@ export class CardCatalog extends Component<IProduct> {
   constructor(container: HTMLElement, private events: EventEmitter) {
     super(container);
 
-    this.titleEl = container.querySelector('.card__title')!;
-    this.imageEl = container.querySelector('.card__image')!;
-    this.categoryEl = container.querySelector('.card__category')!;
-    this.priceEl = container.querySelector('.card__price')!;
+    this.titleEl = container.querySelector(".card__title")!;
+    this.imageEl = container.querySelector(".card__image")!;
+    this.categoryEl = container.querySelector(".card__category")!;
+    this.priceEl = container.querySelector(".card__price")!;
 
-    container.addEventListener('click', () => {
-      this.events.emit('card:select', { id: this.id });
+    container.addEventListener("click", () => {
+      this.events.emit("card:select", { id: this.id });
     });
   }
 
@@ -35,12 +35,14 @@ export class CardCatalog extends Component<IProduct> {
 
   set category(value: string) {
     this.categoryEl.textContent = value;
-    this.categoryEl.className = `card__category ${categoryMap[value as keyof typeof categoryMap]}`;
+    this.categoryEl.className = `card__category ${
+      categoryMap[value as keyof typeof categoryMap]
+    }`;
   }
 
   set price(value: number | null) {
     this.priceEl.textContent =
-      value === null ? 'Недоступно' : `${value} синапсов`;
+      value === null ? "Недоступно" : `${value} синапсов`;
   }
 
   render(data: Partial<IProduct>): HTMLElement {

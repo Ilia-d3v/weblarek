@@ -1,9 +1,11 @@
-import { Component } from '../base/Component';
-import type { IEvents } from '../base/Events';
-import type { IBuyer, TPayment } from '../../types';
+import { Component } from "../base/Component";
+import type { IEvents } from "../base/Events";
+import type { IBuyer, TPayment } from "../../types";
 
-type OrderChange = Partial<Pick<IBuyer, 'payment' | 'address'>>;
-type OrderErrors = Partial<Record<keyof Pick<IBuyer, 'payment' | 'address'>, string>> & {
+type OrderChange = Partial<Pick<IBuyer, "payment" | "address">>;
+type OrderErrors = Partial<
+  Record<keyof Pick<IBuyer, "payment" | "address">, string>
+> & {
   form?: string;
 };
 
@@ -20,14 +22,16 @@ export class OrderView extends Component<IBuyer> {
   constructor(container: HTMLFormElement, private events: IEvents) {
     super(container);
 
-    this.buttonsWrap = container.querySelector('.order__buttons')!;
+    this.buttonsWrap = container.querySelector(".order__buttons")!;
     this.addressInput = container.querySelector('input[name="address"]')!;
     this.submitBtn = container.querySelector('button[type="submit"]')!;
-    this.errorsEl = container.querySelector('.form__errors')!;
+    this.errorsEl = container.querySelector(".form__errors")!;
 
-    this.paymentButtons = Array.from(this.buttonsWrap.querySelectorAll('button[name]'));
+    this.paymentButtons = Array.from(
+      this.buttonsWrap.querySelectorAll("button[name]")
+    );
 
-    this.buttonsWrap.addEventListener('click', (e) => {
+    this.buttonsWrap.addEventListener("click", (e) => {
       const target = e.target as HTMLElement;
       if (!(target instanceof HTMLButtonElement)) return;
 
@@ -35,31 +39,33 @@ export class OrderView extends Component<IBuyer> {
       this.currentPayment = payment;
       this.setPaymentActive(payment);
 
-      this.events.emit<OrderChange>('order:change', { payment });
+      this.events.emit<OrderChange>("order:change", { payment });
 
       this.setErrors({});
       this.validate();
     });
 
-    this.addressInput.addEventListener('input', () => {
-      this.events.emit<OrderChange>('order:change', { address: this.addressInput.value });
+    this.addressInput.addEventListener("input", () => {
+      this.events.emit<OrderChange>("order:change", {
+        address: this.addressInput.value,
+      });
 
       this.setErrors({});
       this.validate();
     });
 
-    container.addEventListener('submit', (e) => {
+    container.addEventListener("submit", (e) => {
       e.preventDefault();
-      this.events.emit('order:submit');
+      this.events.emit("order:submit");
     });
 
     this.validate();
   }
 
   private setPaymentActive(payment: TPayment) {
-    this.paymentButtons.forEach((b) => b.classList.remove('button_alt-active'));
+    this.paymentButtons.forEach((b) => b.classList.remove("button_alt-active"));
     const btn = this.paymentButtons.find((b) => b.name === payment);
-    if (btn) btn.classList.add('button_alt-active');
+    if (btn) btn.classList.add("button_alt-active");
   }
 
   private validate() {
@@ -76,12 +82,12 @@ export class OrderView extends Component<IBuyer> {
   }
 
   set address(v: string) {
-    this.addressInput.value = v ?? '';
+    this.addressInput.value = v ?? "";
     this.validate();
   }
 
   setErrors(errors: OrderErrors) {
-    const msg = Object.values(errors).filter(Boolean).join('. ');
+    const msg = Object.values(errors).filter(Boolean).join(". ");
     this.errorsEl.textContent = msg;
 
     if (!msg) {

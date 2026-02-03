@@ -1,9 +1,11 @@
-import { Component } from '../base/Component';
-import type { IEvents } from '../base/Events';
-import type { IBuyer } from '../../types';
+import { Component } from "../base/Component";
+import type { IEvents } from "../base/Events";
+import type { IBuyer } from "../../types";
 
-type ContactsChange = Partial<Pick<IBuyer, 'email' | 'phone'>>;
-type ContactsErrors = Partial<Record<keyof Pick<IBuyer, 'email' | 'phone'>, string>> & {
+type ContactsChange = Partial<Pick<IBuyer, "email" | "phone">>;
+type ContactsErrors = Partial<
+  Record<keyof Pick<IBuyer, "email" | "phone">, string>
+> & {
   form?: string;
 };
 
@@ -19,25 +21,29 @@ export class ContactsView extends Component<IBuyer> {
     this.emailInput = container.querySelector('input[name="email"]')!;
     this.phoneInput = container.querySelector('input[name="phone"]')!;
     this.submitBtn = container.querySelector('button[type="submit"]')!;
-    this.errorsEl = container.querySelector('.form__errors')!;
+    this.errorsEl = container.querySelector(".form__errors")!;
 
-    this.emailInput.addEventListener('input', () => {
-      this.events.emit<ContactsChange>('contacts:change', { email: this.emailInput.value });
-
-      this.setErrors({});
-      this.validate();
-    });
-
-    this.phoneInput.addEventListener('input', () => {
-      this.events.emit<ContactsChange>('contacts:change', { phone: this.phoneInput.value });
+    this.emailInput.addEventListener("input", () => {
+      this.events.emit<ContactsChange>("contacts:change", {
+        email: this.emailInput.value,
+      });
 
       this.setErrors({});
       this.validate();
     });
 
-    container.addEventListener('submit', (e) => {
+    this.phoneInput.addEventListener("input", () => {
+      this.events.emit<ContactsChange>("contacts:change", {
+        phone: this.phoneInput.value,
+      });
+
+      this.setErrors({});
+      this.validate();
+    });
+
+    container.addEventListener("submit", (e) => {
       e.preventDefault();
-      this.events.emit('contacts:submit');
+      this.events.emit("contacts:submit");
     });
 
     this.validate();
@@ -50,17 +56,17 @@ export class ContactsView extends Component<IBuyer> {
   }
 
   set email(v: string) {
-    this.emailInput.value = v ?? '';
+    this.emailInput.value = v ?? "";
     this.validate();
   }
 
   set phone(v: string) {
-    this.phoneInput.value = v ?? '';
+    this.phoneInput.value = v ?? "";
     this.validate();
   }
 
   setErrors(errors: ContactsErrors) {
-    const msg = Object.values(errors).filter(Boolean).join('. ');
+    const msg = Object.values(errors).filter(Boolean).join(". ");
     this.errorsEl.textContent = msg;
 
     if (!msg) {

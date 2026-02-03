@@ -1,5 +1,5 @@
-import { Component } from '../base/Component';
-import type { IEvents } from '../base/Events';
+import { Component } from "../base/Component";
+import type { IEvents } from "../base/Events";
 
 type SuccessData = {
   total: number;
@@ -12,11 +12,13 @@ export class SuccessView extends Component<SuccessData> {
   constructor(container: HTMLElement, private events: IEvents) {
     super(container);
 
-    this.descriptionEl = container.querySelector('.order-success__description')!;
-    this.closeBtn = container.querySelector('.order-success__close')!;
+    this.descriptionEl = container.querySelector(
+      ".order-success__description"
+    )!;
+    this.closeBtn = container.querySelector(".order-success__close")!;
 
-    this.closeBtn.addEventListener('click', () => {
-      this.events.emit('success:close');
+    this.closeBtn.addEventListener("click", () => {
+      this.events.emit("success:close");
     });
   }
 

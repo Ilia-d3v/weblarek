@@ -1,4 +1,4 @@
-import { Component } from '../base/Component';
+import { Component } from "../base/Component";
 
 type GalleryData = {
   items: HTMLElement[];

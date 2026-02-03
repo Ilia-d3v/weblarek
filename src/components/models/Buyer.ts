@@ -1,13 +1,13 @@
-import type { IBuyer, TPayment } from '../../types';
-import { EventEmitter } from '../base/Events';
+import type { IBuyer, TPayment } from "../../types";
+import { EventEmitter } from "../base/Events";
 
 export type TBuyerErrors = Partial<Record<keyof IBuyer, string>>;
 
 export class Buyer {
   private payment: TPayment | null = null;
-  private email = '';
-  private phone = '';
-  private address = '';
+  private email = "";
+  private phone = "";
+  private address = "";
 
   constructor(private events: EventEmitter) {}
 
@@ -17,7 +17,7 @@ export class Buyer {
     if (data.phone !== undefined) this.phone = data.phone;
     if (data.address !== undefined) this.address = data.address;
 
-    this.events.emit('buyer:changed');
+    this.events.emit("buyer:changed");
   }
 
   getData(): IBuyer {
@@ -31,11 +31,11 @@ export class Buyer {
 
   clear(): void {
     this.payment = null;
-    this.email = '';
-    this.phone = '';
-    this.address = '';
+    this.email = "";
+    this.phone = "";
+    this.address = "";
 
-    this.events.emit('buyer:changed');
+    this.events.emit("buyer:changed");
   }
 
   validate(): TBuyerErrors {
@@ -47,15 +47,15 @@ export class Buyer {
 
   validateStep1(): TBuyerErrors {
     const errors: TBuyerErrors = {};
-    if (!this.payment) errors.payment = 'Не выбран вид оплаты';
-    if (!this.address.trim()) errors.address = 'Введите адрес доставки';
+    if (!this.payment) errors.payment = "Не выбран вид оплаты";
+    if (!this.address.trim()) errors.address = "Введите адрес доставки";
     return errors;
   }
 
   validateStep2(): TBuyerErrors {
     const errors: TBuyerErrors = {};
-    if (!this.email.trim()) errors.email = 'Укажите email';
-    if (!this.phone.trim()) errors.phone = 'Укажите телефон';
+    if (!this.email.trim()) errors.email = "Укажите email";
+    if (!this.phone.trim()) errors.phone = "Укажите телефон";
     return errors;
   }
 }
