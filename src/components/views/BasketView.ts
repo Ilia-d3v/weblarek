@@ -1,5 +1,8 @@
 import { Component } from "../base/Component";
-import type { IEvents } from "../base/Events";
+
+type BasketViewHandlers = {
+  onOrder: () => void;
+};
 
 type BasketViewData = {
   items: HTMLElement[];
@@ -10,22 +13,35 @@ export class BasketView extends Component<BasketViewData> {
   private listEl: HTMLElement;
   private totalEl: HTMLElement;
   private orderBtn: HTMLButtonElement;
+  private emptyEl: HTMLElement | null;
 
-  constructor(container: HTMLElement, private events: IEvents) {
+  constructor(container: HTMLElement, handlers: BasketViewHandlers) {
     super(container);
 
     this.listEl = container.querySelector(".basket__list")!;
     this.totalEl = container.querySelector(".basket__price")!;
     this.orderBtn = container.querySelector(".basket__button")!;
+    this.emptyEl = container.querySelector(".basket__empty");
 
     this.orderBtn.addEventListener("click", () => {
-      this.events.emit("order:open");
+      handlers.onOrder();
     });
   }
 
   set items(value: HTMLElement[]) {
-    this.listEl.replaceChildren(...value);
-    this.orderBtn.disabled = value.length === 0;
+    const isEmpty = value.length === 0;
+
+    if (this.emptyEl) {
+      this.emptyEl.hidden = !isEmpty;
+    }
+
+    if (isEmpty) {
+      this.listEl.replaceChildren();
+    } else {
+      this.listEl.replaceChildren(...value);
+    }
+
+    this.orderBtn.disabled = isEmpty;
   }
 
   set total(value: number) {

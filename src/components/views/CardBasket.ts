@@ -1,11 +1,13 @@
-import { Component } from "./base/Component";
-import type { IEvents } from "./base/Events";
+import { Component } from "../base/Component";
 
-type CardBasketData = {
-  id: string;
+export type CardBasketData = {
   index: number;
   title: string;
   price: number | null;
+};
+
+type CardBasketHandlers = {
+  onDelete: () => void;
 };
 
 export class CardBasket extends Component<CardBasketData> {
@@ -14,9 +16,7 @@ export class CardBasket extends Component<CardBasketData> {
   private priceEl: HTMLElement;
   private deleteBtn: HTMLButtonElement;
 
-  private id!: string;
-
-  constructor(container: HTMLElement, private events: IEvents) {
+  constructor(container: HTMLElement, handlers: CardBasketHandlers) {
     super(container);
 
     this.indexEl = container.querySelector(".basket__item-index")!;
@@ -24,9 +24,7 @@ export class CardBasket extends Component<CardBasketData> {
     this.priceEl = container.querySelector(".card__price")!;
     this.deleteBtn = container.querySelector(".basket__item-delete")!;
 
-    this.deleteBtn.addEventListener("click", () => {
-      this.events.emit("basket:remove", { id: this.id });
-    });
+    this.deleteBtn.addEventListener("click", handlers.onDelete);
   }
 
   set index(v: number) {
@@ -39,10 +37,5 @@ export class CardBasket extends Component<CardBasketData> {
 
   set price(v: number | null) {
     this.priceEl.textContent = v === null ? "Недоступно" : `${v} синапсов`;
-  }
-
-  render(data: Partial<CardBasketData>): HTMLElement {
-    if (data.id) this.id = data.id;
-    return super.render(data);
   }
 }

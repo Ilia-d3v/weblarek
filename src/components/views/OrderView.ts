@@ -2,13 +2,6 @@ import { Component } from "../base/Component";
 import type { IEvents } from "../base/Events";
 import type { IBuyer, TPayment } from "../../types";
 
-type OrderChange = Partial<Pick<IBuyer, "payment" | "address">>;
-type OrderErrors = Partial<
-  Record<keyof Pick<IBuyer, "payment" | "address">, string>
-> & {
-  form?: string;
-};
-
 export class OrderView extends Component<IBuyer> {
   private buttonsWrap: HTMLElement;
   private addressInput: HTMLInputElement;
@@ -16,8 +9,6 @@ export class OrderView extends Component<IBuyer> {
   private errorsEl: HTMLElement;
 
   private paymentButtons: HTMLButtonElement[];
-
-  private currentPayment: TPayment | null = null;
 
   constructor(container: HTMLFormElement, private events: IEvents) {
     super(container);
@@ -36,74 +27,48 @@ export class OrderView extends Component<IBuyer> {
       if (!(target instanceof HTMLButtonElement)) return;
 
       const payment = target.name as TPayment;
-      this.currentPayment = payment;
-      this.setPaymentActive(payment);
-
-      this.events.emit<OrderChange>("order:change", { payment });
-
-      this.setErrors({});
-      this.validate();
+      this.events.emit<Partial<IBuyer>>("buyer:change", { payment });
     });
 
     this.addressInput.addEventListener("input", () => {
-      this.events.emit<OrderChange>("order:change", {
+      this.events.emit<Partial<IBuyer>>("buyer:change", {
         address: this.addressInput.value,
       });
-
-      this.setErrors({});
-      this.validate();
     });
 
     container.addEventListener("submit", (e) => {
       e.preventDefault();
       this.events.emit("order:submit");
     });
-
-    this.validate();
   }
 
-  private setPaymentActive(payment: TPayment) {
+  private setPaymentActive(payment: TPayment | null) {
     this.paymentButtons.forEach((b) => b.classList.remove("button_alt-active"));
+    if (!payment) return;
+
     const btn = this.paymentButtons.find((b) => b.name === payment);
     if (btn) btn.classList.add("button_alt-active");
   }
 
-  private validate() {
-    const hasPayment = Boolean(this.currentPayment);
-    const hasAddress = Boolean(this.addressInput.value.trim());
-
-    this.submitBtn.disabled = !(hasPayment && hasAddress);
-  }
-
   set payment(v: TPayment | null) {
-    this.currentPayment = v;
-    if (v) this.setPaymentActive(v);
-    this.validate();
+    this.setPaymentActive(v);
   }
 
   set address(v: string) {
     this.addressInput.value = v ?? "";
-    this.validate();
   }
 
-  setErrors(errors: OrderErrors) {
-    const msg = Object.values(errors).filter(Boolean).join(". ");
-    this.errorsEl.textContent = msg;
+  set valid(value: boolean) {
+    this.submitBtn.disabled = !value;
+  }
 
-    if (!msg) {
-      this.validate();
-      return;
-    }
-
-    this.submitBtn.disabled = true;
+  set errors(message: string) {
+    this.errorsEl.textContent = message;
   }
 
   render(data: Partial<IBuyer>): HTMLElement {
     if (data.payment !== undefined) this.payment = data.payment;
     if (data.address !== undefined) this.address = data.address;
-
-    this.validate();
-
     return this.container;
   }
 }

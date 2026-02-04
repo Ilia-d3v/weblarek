@@ -2,13 +2,6 @@ import { Component } from "../base/Component";
 import type { IEvents } from "../base/Events";
 import type { IBuyer } from "../../types";
 
-type ContactsChange = Partial<Pick<IBuyer, "email" | "phone">>;
-type ContactsErrors = Partial<
-  Record<keyof Pick<IBuyer, "email" | "phone">, string>
-> & {
-  form?: string;
-};
-
 export class ContactsView extends Component<IBuyer> {
   private emailInput: HTMLInputElement;
   private phoneInput: HTMLInputElement;
@@ -24,65 +17,42 @@ export class ContactsView extends Component<IBuyer> {
     this.errorsEl = container.querySelector(".form__errors")!;
 
     this.emailInput.addEventListener("input", () => {
-      this.events.emit<ContactsChange>("contacts:change", {
+      this.events.emit<Partial<IBuyer>>("buyer:change", {
         email: this.emailInput.value,
       });
-
-      this.setErrors({});
-      this.validate();
     });
 
     this.phoneInput.addEventListener("input", () => {
-      this.events.emit<ContactsChange>("contacts:change", {
+      this.events.emit<Partial<IBuyer>>("buyer:change", {
         phone: this.phoneInput.value,
       });
-
-      this.setErrors({});
-      this.validate();
     });
 
     container.addEventListener("submit", (e) => {
       e.preventDefault();
       this.events.emit("contacts:submit");
     });
-
-    this.validate();
-  }
-
-  private validate() {
-    const hasEmail = Boolean(this.emailInput.value.trim());
-    const hasPhone = Boolean(this.phoneInput.value.trim());
-    this.submitBtn.disabled = !(hasEmail && hasPhone);
   }
 
   set email(v: string) {
     this.emailInput.value = v ?? "";
-    this.validate();
   }
 
   set phone(v: string) {
     this.phoneInput.value = v ?? "";
-    this.validate();
   }
 
-  setErrors(errors: ContactsErrors) {
-    const msg = Object.values(errors).filter(Boolean).join(". ");
-    this.errorsEl.textContent = msg;
+  set valid(value: boolean) {
+    this.submitBtn.disabled = !value;
+  }
 
-    if (!msg) {
-      this.validate();
-      return;
-    }
-
-    this.submitBtn.disabled = true;
+  set errors(message: string) {
+    this.errorsEl.textContent = message;
   }
 
   render(data: Partial<IBuyer>): HTMLElement {
     if (data.email !== undefined) this.email = data.email;
     if (data.phone !== undefined) this.phone = data.phone;
-
-    this.validate();
-
     return this.container;
   }
 }

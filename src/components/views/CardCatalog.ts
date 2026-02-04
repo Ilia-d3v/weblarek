@@ -1,7 +1,10 @@
 import { Component } from "../base/Component";
-import { IProduct } from "../../types";
-import { EventEmitter } from "../base/Events";
+import type { IProduct } from "../../types";
 import { categoryMap, CDN_URL } from "../../utils/constants";
+
+type CardCatalogHandlers = {
+  onSelect: () => void;
+};
 
 export class CardCatalog extends Component<IProduct> {
   private titleEl: HTMLElement;
@@ -9,9 +12,9 @@ export class CardCatalog extends Component<IProduct> {
   private categoryEl: HTMLElement;
   private priceEl: HTMLElement;
 
-  private id!: string;
+  private rootClickEl: HTMLElement;
 
-  constructor(container: HTMLElement, private events: EventEmitter) {
+  constructor(container: HTMLElement, handlers: CardCatalogHandlers) {
     super(container);
 
     this.titleEl = container.querySelector(".card__title")!;
@@ -19,34 +22,35 @@ export class CardCatalog extends Component<IProduct> {
     this.categoryEl = container.querySelector(".card__category")!;
     this.priceEl = container.querySelector(".card__price")!;
 
-    container.addEventListener("click", () => {
-      this.events.emit("card:select", { id: this.id });
+    this.rootClickEl = container;
+
+    this.rootClickEl.addEventListener("click", (e) => {
+      const target = e.target as HTMLElement;
+    
+      if (target.closest(".card__button")) return;
+    
+      handlers.onSelect();
     });
+    
   }
 
-  set title(value: string) {
-    this.titleEl.textContent = value;
+  set title(v: string) {
+    this.titleEl.textContent = v;
   }
 
-  set image(value: string) {
-    const src = /^https?:\/\//.test(value) ? value : `${CDN_URL}/${value}`;
-    this.setImage(this.imageEl, src);
+  set image(v: string) {
+    const src = /^https?:\/\//.test(v) ? v : `${CDN_URL}/${v}`;
+    this.setImage(this.imageEl, src, this.titleEl.textContent ?? "");
   }
 
-  set category(value: string) {
-    this.categoryEl.textContent = value;
+  set category(v: string) {
+    this.categoryEl.textContent = v;
     this.categoryEl.className = `card__category ${
-      categoryMap[value as keyof typeof categoryMap]
+      categoryMap[v as keyof typeof categoryMap]
     }`;
   }
 
-  set price(value: number | null) {
-    this.priceEl.textContent =
-      value === null ? "Недоступно" : `${value} синапсов`;
-  }
-
-  render(data: Partial<IProduct>): HTMLElement {
-    if (data.id) this.id = data.id;
-    return super.render(data);
+  set price(v: number | null) {
+    this.priceEl.textContent = v === null ? "Недоступно" : `${v} синапсов`;
   }
 }
