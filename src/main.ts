@@ -84,6 +84,14 @@ function errorsToString(errors: Record<string, string | undefined>) {
   return Object.values(errors).filter(Boolean).join(". ");
 }
 
+function isOrderEmpty(buyer: IBuyer) {
+  return !buyer.payment && !buyer.address?.trim();
+}
+
+function isContactsEmpty(buyer: IBuyer) {
+  return !buyer.email?.trim() && !buyer.phone?.trim();
+}
+
 function syncOrderForm(showErrors: boolean) {
   const data = buyerModel.getData();
   const stepErrors = buyerModel.validateStep1();
@@ -191,14 +199,26 @@ function openBasket() {
 
 function openOrder() {
   activeModal = "order";
-  modal.open(orderView.render(buyerModel.getData()));
-  syncOrderForm(orderShowErrors);
+
+  const buyer = buyerModel.getData();
+  const showErrors = orderShowErrors || !isOrderEmpty(buyer);
+
+  orderShowErrors = showErrors;
+
+  modal.open(orderView.render(buyer));
+  syncOrderForm(showErrors);
 }
 
 function openContacts() {
   activeModal = "contacts";
-  modal.open(contactsView.render(buyerModel.getData()));
-  syncContactsForm(contactsShowErrors);
+
+  const buyer = buyerModel.getData();
+  const showErrors = contactsShowErrors || !isContactsEmpty(buyer);
+
+  contactsShowErrors = showErrors;
+
+  modal.open(contactsView.render(buyer));
+  syncContactsForm(showErrors);
 }
 
 function openSuccess(total: number) {
