@@ -37,6 +37,9 @@ const headerEl = document.querySelector(".header") as HTMLElement;
 
 const modal = new Modal(modalEl, events);
 const gallery = new Gallery(galleryEl);
+const header = new Header(headerEl, {
+  onBasketClick: () => openBasket(),
+});
 
 const cardCatalogTemplate = document.querySelector(
   "#card-catalog"
@@ -73,10 +76,6 @@ const successEl = successTemplate.content.firstElementChild!.cloneNode(
 ) as HTMLElement;
 const successView = new SuccessView(successEl, events);
 
-const header = new Header(headerEl, {
-  onBasketClick: () => openBasket(),
-});
-
 let activeModal: "order" | "contacts" | null = null;
 let orderShowErrors = false;
 let contactsShowErrors = false;
@@ -87,24 +86,26 @@ function errorsToString(errors: Record<string, string | undefined>) {
 
 function syncOrderForm(showErrors: boolean) {
   const data = buyerModel.getData();
-  const errors = buyerModel.validateStep1();
+  const stepErrors = buyerModel.validateStep1();
 
   orderView.render(data);
 
-  const isValid = Object.keys(errors).length === 0;
+  const isValid = Object.keys(stepErrors).length === 0;
   orderView.valid = isValid;
-  orderView.errors = showErrors ? errorsToString(errors as any) : "";
+
+  orderView.errors = showErrors ? errorsToString(stepErrors) : "";
 }
 
 function syncContactsForm(showErrors: boolean) {
   const data = buyerModel.getData();
-  const errors = buyerModel.validateStep2();
+  const stepErrors = buyerModel.validateStep2();
 
   contactsView.render(data);
 
-  const isValid = Object.keys(errors).length === 0;
+  const isValid = Object.keys(stepErrors).length === 0;
   contactsView.valid = isValid;
-  contactsView.errors = showErrors ? errorsToString(errors as any) : "";
+
+  contactsView.errors = showErrors ? errorsToString(stepErrors) : "";
 }
 
 function syncActiveForm() {
@@ -112,7 +113,11 @@ function syncActiveForm() {
   if (activeModal === "contacts") syncContactsForm(contactsShowErrors);
 }
 
-function openPreview(product: IProduct) {
+function openPreview(
+  product: IProduct,
+  buttonText: string,
+  buttonDisabled: boolean
+) {
   const previewEl = cardPreviewTemplate.content.firstElementChild!.cloneNode(
     true
   ) as HTMLElement;
@@ -121,12 +126,11 @@ function openPreview(product: IProduct) {
     onToggleBasket: () => events.emit("basket:toggle", { id: product.id }),
   });
 
-  modal.open(
-    preview.render({
-      ...(product as any),
-      inBasket: basketModel.has(product.id),
-    } as any)
-  );
+  const el = preview.render(product);
+  preview.buttonText = buttonText;
+  preview.buttonDisabled = buttonDisabled;
+
+  modal.open(el);
 }
 
 function renderCatalog() {
@@ -158,7 +162,7 @@ function buildBasketItem(product: IProduct, index: number): HTMLElement {
   indexEl.textContent = String(index + 1);
   titleEl.textContent = product.title;
   priceEl.textContent =
-    product.price === null ? "Недоступно" : `${product.price} синапсов`;
+    product.price === null ? "Бесценно" : `${product.price} синапсов`;
 
   delBtn.addEventListener("click", () => {
     events.emit("basket:remove", { id: product.id });
@@ -171,15 +175,14 @@ function openBasket() {
   const basketEl = basketTemplate.content.firstElementChild!.cloneNode(
     true
   ) as HTMLElement;
-
   const itemElements = basketModel.getItems().map(buildBasketItem);
 
-  const basketView = new BasketView(basketEl, {
+  const view = new BasketView(basketEl, {
     onOrder: () => events.emit("order:open"),
   });
 
   modal.open(
-    basketView.render({
+    view.render({
       items: itemElements,
       total: basketModel.getTotal(),
     })
@@ -188,21 +191,19 @@ function openBasket() {
 
 function openOrder() {
   activeModal = "order";
-  orderShowErrors = false;
   modal.open(orderView.render(buyerModel.getData()));
-  syncOrderForm(false);
+  syncOrderForm(orderShowErrors);
 }
 
 function openContacts() {
   activeModal = "contacts";
-  contactsShowErrors = false;
   modal.open(contactsView.render(buyerModel.getData()));
-  syncContactsForm(false);
+  syncContactsForm(contactsShowErrors);
 }
 
 function openSuccess(total: number) {
   activeModal = null;
-  modal.open(successView.render({ total } as any));
+  modal.open(successView.render({ total }));
 }
 
 events.on("catalog:changed", renderCatalog);
@@ -212,13 +213,25 @@ events.on<{ id: string }>("card:select", ({ id }) => {
   if (!product) return;
 
   productsModel.setPreview(product);
-  openPreview(product);
+});
+
+events.on("preview:changed", () => {
+  const product = productsModel.getPreview();
+  if (!product) return;
+
+  const inBasket = basketModel.has(product.id);
+
+  const buttonDisabled = product.price === null;
+  const buttonText = buttonDisabled
+    ? "Нельзя купить"
+    : inBasket
+    ? "Удалить из корзины"
+    : "В корзину";
+
+  openPreview(product, buttonText, buttonDisabled);
 });
 
 events.on<Partial<IBuyer>>("buyer:change", (data) => {
-  if (activeModal === "order") orderShowErrors = true;
-  if (activeModal === "contacts") contactsShowErrors = true;
-
   buyerModel.setData(data);
 });
 
@@ -233,7 +246,7 @@ events.on<{ id: string }>("basket:toggle", ({ id }) => {
   if (basketModel.has(id)) basketModel.remove(product);
   else basketModel.add(product);
 
-  openPreview(product);
+  productsModel.setPreview(product);
 });
 
 events.on("basket:changed", () => {
@@ -259,6 +272,7 @@ events.on("order:submit", () => {
     return;
   }
 
+  contactsShowErrors = false;
   openContacts();
 });
 
@@ -272,22 +286,20 @@ events.on("contacts:submit", async () => {
   }
 
   const buyer = buyerModel.getData();
-  const items = basketModel.getItems().map((p) => p.id);
-  const total = basketModel.getTotal();
 
   const order: IOrderRequest = {
     payment: buyer.payment!,
     address: buyer.address,
     email: buyer.email,
     phone: buyer.phone,
-    total,
-    items,
+    total: basketModel.getTotal(),
+    items: basketModel.getItems().map((p) => p.id),
   };
 
   try {
     await larekApi.createOrder(order);
 
-    openSuccess(total);
+    openSuccess(order.total);
 
     basketModel.clear();
     buyerModel.clear();
